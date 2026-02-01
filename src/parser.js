@@ -179,6 +179,16 @@ function parseStrengthWorkout(exerciseNorm, rest, isoTs) {
   const exerciseType = EXERCISE_TYPE[exerciseNorm];
   const isBodyweight = exerciseType === 'bodyweight';
 
+  // Handle empty input (generic entry without sets/reps)
+  if (!rest || !rest.trim()) {
+    return {
+      ts: isoTs,
+      type: exerciseType,
+      exercise: exerciseNorm,
+      sets: [],
+    };
+  }
+
   const parts = rest.trim().split(/\s+/);
   let sets = [];
   let weight = null;
