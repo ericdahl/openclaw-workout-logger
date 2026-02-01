@@ -19,6 +19,7 @@ if (require.main === module) {
   // Parse arguments
   let dryRun = false;
   let dbDir = undefined;
+  let source = 'manual';
   const args = [];
 
   for (let i = 0; i < rawArgs.length; i++) {
@@ -27,6 +28,9 @@ if (require.main === module) {
       dryRun = true;
     } else if (arg === '--db-dir') {
       dbDir = rawArgs[i + 1];
+      i++; // Skip next arg
+    } else if (arg === '--source') {
+      source = rawArgs[i + 1];
       i++; // Skip next arg
     } else {
       args.push(arg);
@@ -43,12 +47,13 @@ Usage:
 Examples:
   node index.js "/log squat 315x5x3 rpe8 felt strong"
   node index.js --dry-run "/log squat 315x5x3"
-  node index.js --db-dir ./my-db "/log pull-up 20,20,20"
+  node index.js --db-dir ./my-db --source backfill "/log pull-up 20,20,20"
   node index.js "/log treadmill 10min 3.2mph incline15" "2026-02-01T18:34:41Z"
 
 Options:
   --dry-run         Parse and output to stdout without writing to database
   --db-dir <path>   Custom database directory (default: /srv/openclaw/db)
+  --source <name>   Source of the log (default: manual)
 
 For more info, see README.md or examples/test-cases.md
     `);
@@ -63,7 +68,7 @@ For more info, see README.md or examples/test-cases.md
     process.exit(1);
   }
 
-  const result = handleWorkoutMessage(message, 'telegram', timestamp, { dryRun, dbDir });
+  const result = handleWorkoutMessage(message, source, timestamp, { dryRun, dbDir });
   console.log(JSON.stringify(result, null, 2));
   process.exit(result.success ? 0 : 1);
 }

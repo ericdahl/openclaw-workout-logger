@@ -20,7 +20,7 @@ function handleWorkoutMessage(message, source = 'telegram', timestamp = null, op
   }
 
   try {
-    const { record, date } = parseWorkoutLog(message, message, timestamp);
+    const { record, date } = parseWorkoutLog(message, message, { timestamp, source });
     const filepath = writeWorkoutLog(record, date, { dryRun, dbDir });
     
     const statusMsg = dryRun ? 'Would log to' : 'Logged to';

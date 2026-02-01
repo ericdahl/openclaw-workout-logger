@@ -136,15 +136,18 @@ This will re-parse the `raw` strings in each `.jsonl` file and ensure the stored
 
 **Note:** `npm run` doesn't pass arguments directly. Always invoke the scripts with `node` directly for testing.
 
-### Custom Database Directory
+### CLI Options
 
-You can specify a custom database directory using the `--db-dir` flag:
-
+**Custom Database Directory:**
 ```bash
 node index.js --db-dir ./my-backups "/log squat 315x5x3"
 ```
 
-This is useful for local testing or managing multiple databases.
+**Custom Source:**
+```bash
+node index.js --source backfill "/log squat 315x5x3"
+```
+Default source is `manual` when using the CLI.
 
 ## Output Format
 

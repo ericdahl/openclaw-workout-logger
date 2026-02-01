@@ -372,9 +372,22 @@ function parseCardioWorkout(exerciseNorm, rest, isoTs) {
 }
 
 // Main parser
-function parseWorkoutLog(message, rawMessage = null, timestamp = null) {
+function parseWorkoutLog(message, rawMessage = null, options = null) {
   if (!message.startsWith('/log ')) {
     throw new Error('Message must start with /log');
+  }
+
+  // Parse options
+  let timestamp = null;
+  let source = 'telegram';
+
+  if (options) {
+    if (options instanceof Date || typeof options === 'string' || typeof options === 'number') {
+      timestamp = options;
+    } else if (typeof options === 'object') {
+      timestamp = options.timestamp || null;
+      source = options.source || 'telegram';
+    }
   }
 
   const content = message.slice(5).trim();
@@ -464,7 +477,7 @@ function parseWorkoutLog(message, rawMessage = null, timestamp = null) {
     throw new Error(`Unknown exercise type for "${exerciseNorm}"`);
   }
 
-  record.source = 'telegram';
+  record.source = source;
   record.raw = message;
 
   return {
