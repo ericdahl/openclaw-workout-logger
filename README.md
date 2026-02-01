@@ -6,19 +6,39 @@ Parse and store workout logs from Telegram into a JSONL time-series database.
 
 This tool parses `/log` messages from Telegram and converts them into structured JSON records saved to `/srv/openclaw/db/YYYY/MM/DD.jsonl`.
 
-**Format:** `weight x sets x reps`
+**Format:** `weight x sets x reps` (or `reps,reps,reps` for bodyweight with variable reps per set)
 
 ## Usage
 
 ### Send logs via Telegram
 
+**Strength/Machine (weight x sets x reps):**
 ```
 /log squat 315x5x3 rpe8 felt strong
 /log ohp 145x5x3 last set grindy
-/log weighted pull-up 25x5x10 felt good
 /log face pulls 60x3x15
-/log ab crunch 120x15x3 slow tempo
+```
+
+**Bodyweight (comma-separated reps):**
+```
+/log pull-up 20,20,25
+/log dip 15,15,12,10
+```
+
+**With failed sets (x marks failed):**
+```
+/log deadlift 405 2,1,x
+```
+
+**Dumbbell exercises:**
+```
+/log db bench 2x90 4x10,7
+```
+
+**Cardio:**
+```
 /log treadmill 1 degree incline, 7.2 mph, 3.0 miles
+/log treadmill 10min 3.2mph incline15 steady pace
 ```
 
 ### Backdate logs

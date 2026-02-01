@@ -99,25 +99,51 @@ const EXERCISE_TYPE = {
 };
 
 // Parse date modifier (e.g., "yesterday", "2026-01-31")
+// Returns { date: Date object, year: string, month: string, day: string }
 function parseDate(dateStr, baseDate = new Date()) {
-  if (!dateStr) return baseDate;
+  if (!dateStr) {
+    // Return current date in Pacific time
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const [m, d, y] = formatter.format(baseDate).match(/(\d+)/g);
+    return { date: baseDate, year: y, month: m, day: d };
+  }
   
   const lower = dateStr.toLowerCase().trim();
   
   if (lower === 'yesterday') {
     const d = new Date(baseDate);
     d.setDate(d.getDate() - 1);
-    return d;
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const [m, dy, y] = formatter.format(d).match(/(\d+)/g);
+    return { date: d, year: y, month: m, day: dy };
   }
   
   if (lower === 'today') {
-    return baseDate;
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const [m, d, y] = formatter.format(baseDate).match(/(\d+)/g);
+    return { date: baseDate, year: y, month: m, day: d };
   }
   
   // Try parsing as ISO date (YYYY-MM-DD)
-  const match = dateStr.match(/^\d{4}-\d{2}-\d{2}$/);
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (match) {
-    return new Date(dateStr + 'T00:00:00');
+    // User specified explicit date - use it as-is for the file path
+    return { date: baseDate, year: match[1], month: match[2], day: match[3] };
   }
   
   return null;
@@ -360,18 +386,13 @@ function parseWorkoutLog(message, rawMessage = null, timestamp = null) {
 
   // Parse date
   let now = timestamp ? new Date(timestamp) : new Date();
-  if (dateStr) {
-    const parsed = parseDate(dateStr, now);
-    if (!parsed) {
-      throw new Error(`Could not parse date: "${dateStr}"`);
-    }
-    now = parsed;
+  let dateInfo = parseDate(dateStr || null, now);
+  
+  if (!dateInfo) {
+    throw new Error(`Could not parse date: "${dateStr}"`);
   }
 
-  // Adjust to Pacific timezone
-  const baseTime = now;
-  
-  // Get Pacific time components
+  // Get Pacific time components for the timestamp
   const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Los_Angeles',
     year: 'numeric',
@@ -383,19 +404,19 @@ function parseWorkoutLog(message, rawMessage = null, timestamp = null) {
     hour12: false,
   });
 
-  const parts = formatter.format(baseTime);
+  const parts = formatter.format(dateInfo.date);
   const [m, d, y, h, min, s] = parts.match(/(\d+)/g);
   
   // Determine offset (PST = -08:00, PDT = -07:00)
   // February is always PST
   const offset = '-08:00';
   
-  const isoTs = `${y}-${m}-${d}T${h}:${min}:${s}${offset}`;
-
-  // Store the date for file path
-  const year = y;
-  const month = m;
-  const day = d;
+  // Use the explicit date if provided, otherwise use formatted Pacific time
+  const year = dateInfo.year;
+  const month = dateInfo.month;
+  const day = dateInfo.day;
+  
+  const isoTs = `${year}-${month}-${day}T${h}:${min}:${s}${offset}`;
 
   // Split exercise name from rest
   const words = logContent.split(/\s+/);
