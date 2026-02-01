@@ -1,0 +1,27 @@
+{
+  "name": "workout-logger",
+  "version": "1.0.0",
+  "description": "Parse and log workout sessions from Telegram to JSONL database",
+  "main": "src/handler.js",
+  "scripts": {
+    "test:parser": "node src/parser.js",
+    "test:handler": "node src/handler.js",
+    "test:monitor": "node src/monitor.js"
+  },
+  "keywords": [
+    "workout",
+    "fitness",
+    "logging",
+    "telegram",
+    "parser",
+    "jsonl"
+  ],
+  "author": "Eric",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "config": {
+    "requiredEnvVars": ["AUTHORIZED_TELEGRAM_ID"]
+  }
+}
