@@ -277,6 +277,18 @@ function parseStrengthWorkout(exerciseNorm, rest, isoTs) {
     }
     partsConsumed = 1;
   }
+  // Format: Weight followed by SetsxReps (e.g. "135 1x4")
+  else if (firstPart.match(/^\d+(?:\.\d+)?$/) && parts.length > 1 && parts[1].match(/^(\d+)x(\d+)$/i)) {
+    weight = parseFloat(firstPart);
+    const setsMatch = parts[1].match(/^(\d+)x(\d+)$/i);
+    const setsCount = parseInt(setsMatch[1]);
+    const repsCount = parseInt(setsMatch[2]);
+    
+    for(let i=0; i<setsCount; i++) {
+        sets.push({ weight, reps: repsCount });
+    }
+    partsConsumed = 2;
+  }
   // Format: weight followed by comma-separated reps: "405 2,1,x"
   else if (firstPart.match(/^\d+(?:\.\d+)?$/) && parts.length > 1 && parts[1].match(/^[\d,x]+$/i)) {
     weight = parseFloat(firstPart);
