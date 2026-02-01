@@ -36,6 +36,7 @@ const EXERCISE_MAP = {
   'weighted pull up': 'weighted_pull_up',
   'weighted pullup': 'weighted_pull_up',
   'weighted pull-up': 'weighted_pull_up',
+  'shrug': 'shrug',
 
   // Dumbbell exercises
   'db bench': 'dumbbell_bench_press',
@@ -86,6 +87,7 @@ const EXERCISE_TYPE = {
   'pull_up': 'bodyweight',
   'weighted_pull_up': 'bodyweight',
   'dragon_flag': 'bodyweight',
+  'shrug': 'strength',
   'chest_press_machine': 'machine',
   'tricep_dip_machine': 'machine',
   'ab_crunch': 'machine',
@@ -478,6 +480,7 @@ function parseWorkoutLog(message, rawMessage = null, options = null) {
   let wordsConsumed = 1;
 
   // Try combining up to 3 words (e.g., "tricep dip machine")
+  // Only continue if we haven't found a match yet
   if (!exerciseNorm && words.length > 1) {
     exerciseName = `${words[0]} ${words[1]}`;
     exerciseNorm = normalizeExercise(exerciseName);
@@ -489,6 +492,10 @@ function parseWorkoutLog(message, rawMessage = null, options = null) {
       wordsConsumed = 3;
     }
   }
+
+  // If we found a match, but the name we matched is different from the words we consumed,
+  // we need to make sure we didn't just pick up a partial match if a shorter one was valid.
+  // (Actually, the logic above prioritizes shorter matches correctly by starting at 1 word).
 
   if (!exerciseNorm) {
     throw new Error(`Unknown exercise: "${exerciseName}". Could not normalize.`);
