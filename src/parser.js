@@ -42,12 +42,11 @@ const EXERCISE_MAP = {
   'dumbbell bench': 'dumbbell_bench_press',
   'db press': 'dumbbell_bench_press',
 
-  // Bodyweight
-  'dragon': 'dragon_flag',
-  'dragon flag': 'dragon_flag',
-  'dragon flags': 'dragon_flag',
-
   // Machines
+  'chest press': 'chest_press_machine',
+  'chest press machine': 'chest_press_machine',
+  'tricep dip machine': 'tricep_dip_machine',
+  'triceip dip': 'tricep_dip_machine',
   'ab crunch': 'ab_crunch',
   'ab_crunch': 'ab_crunch',
   'cybex ab crunch': 'cybex_ab_crunch',
@@ -87,6 +86,8 @@ const EXERCISE_TYPE = {
   'pull_up': 'bodyweight',
   'weighted_pull_up': 'bodyweight',
   'dragon_flag': 'bodyweight',
+  'chest_press_machine': 'machine',
+  'tricep_dip_machine': 'machine',
   'ab_crunch': 'machine',
   'cybex_ab_crunch': 'machine',
   'leg_press': 'machine',
@@ -464,19 +465,26 @@ function parseWorkoutLog(message, rawMessage = null, options = null) {
 
   let exerciseName = words[0];
   let exerciseNorm = normalizeExercise(exerciseName);
+  let wordsConsumed = 1;
 
-  // Try combining first two words (e.g., "ab crunch")
+  // Try combining up to 3 words (e.g., "tricep dip machine")
   if (!exerciseNorm && words.length > 1) {
     exerciseName = `${words[0]} ${words[1]}`;
     exerciseNorm = normalizeExercise(exerciseName);
-    words.shift(); // Remove first word from further processing
+    wordsConsumed = 2;
+    
+    if (!exerciseNorm && words.length > 2) {
+      exerciseName = `${words[0]} ${words[1]} ${words[2]}`;
+      exerciseNorm = normalizeExercise(exerciseName);
+      wordsConsumed = 3;
+    }
   }
 
   if (!exerciseNorm) {
     throw new Error(`Unknown exercise: "${exerciseName}". Could not normalize.`);
   }
 
-  const rest = words.slice(1).join(' ');
+  const rest = words.slice(wordsConsumed).join(' ');
   const exerciseType = EXERCISE_TYPE[exerciseNorm];
 
   let record;
