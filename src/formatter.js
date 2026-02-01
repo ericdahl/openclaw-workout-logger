@@ -72,6 +72,10 @@ function formatRecord(record) {
 
   let summary = '';
 
+  if (record.type === 'note') {
+    return `[${date}] Note: "${record.notes}"`;
+  }
+
   if (record.type === 'cardio') {
     const parts = [];
     if (record.duration_min) parts.push(`${record.duration_min} min`);

@@ -39,8 +39,8 @@ function processMessage(messageId, messageText, timestamp, userId = null) {
     return { skipped: true };
   }
 
-  // Only process messages starting with /log
-  if (!messageText.startsWith('/log ')) {
+  // Only process messages starting with /log or /note
+  if (!messageText.startsWith('/log ') && !messageText.startsWith('/note ')) {
     return { skipped: true };
   }
 

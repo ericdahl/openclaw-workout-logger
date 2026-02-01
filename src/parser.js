@@ -401,8 +401,11 @@ function parseCardioWorkout(exerciseNorm, rest, isoTs) {
 
 // Main parser
 function parseWorkoutLog(message, rawMessage = null, options = null) {
-  if (!message.startsWith('/log ')) {
-    throw new Error('Message must start with /log');
+  const isLog = message.startsWith('/log ');
+  const isNote = message.startsWith('/note ');
+
+  if (!isLog && !isNote) {
+    throw new Error('Message must start with /log or /note');
   }
 
   // Parse options
@@ -418,7 +421,8 @@ function parseWorkoutLog(message, rawMessage = null, options = null) {
     }
   }
 
-  const content = message.slice(5).trim();
+  const prefixLength = isLog ? 5 : 6;
+  const content = message.slice(prefixLength).trim();
   
   // Check for date modifier (at start or end)
   let dateStr = null;
@@ -471,6 +475,20 @@ function parseWorkoutLog(message, rawMessage = null, options = null) {
   const day = dateInfo.day;
   
   const isoTs = `${year}-${month}-${day}T${h}:${min}:${s}${offset}`;
+
+  // Handle Note
+  if (isNote) {
+    return {
+      record: {
+        ts: isoTs,
+        type: 'note',
+        notes: logContent.trim(),
+        source: source,
+        raw: message,
+      },
+      date: `${year}-${month}-${day}`,
+    };
+  }
 
   // Split exercise name from rest
   const words = logContent.split(/\s+/);
