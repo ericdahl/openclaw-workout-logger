@@ -43,11 +43,13 @@ This tool parses `/log` messages from Telegram and converts them into structured
 
 ### Backdate logs
 
-If you forgot to log it on the day, prefix with a date:
+If you forgot to log it on the day, add a date (at start or end):
 
 ```
 /log yesterday: squat 315x5x3 rpe8
 /log 2026-01-31: deadlift 405x5x1 rpe9
+/log squat 315x5x3 rpe8 2026-01-31
+/log pull-up 20,27 2026-01-29
 ```
 
 ## Supported Exercise Types

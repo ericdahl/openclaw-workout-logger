@@ -374,14 +374,22 @@ function parseWorkoutLog(message, rawMessage = null, timestamp = null) {
 
   const content = message.slice(5).trim();
   
-  // Check for date modifier at the start
+  // Check for date modifier (at start or end)
   let dateStr = null;
   let logContent = content;
   
-  const dateMatch = content.match(/^(yesterday|today|\d{4}-\d{2}-\d{2})\s*:\s*/i);
-  if (dateMatch) {
-    dateStr = dateMatch[1];
-    logContent = content.slice(dateMatch[0].length);
+  // Try start of message: "2026-01-29: pull-up 20,27"
+  const dateMatchStart = content.match(/^(yesterday|today|\d{4}-\d{2}-\d{2})\s*:\s*/i);
+  if (dateMatchStart) {
+    dateStr = dateMatchStart[1];
+    logContent = content.slice(dateMatchStart[0].length);
+  } else {
+    // Try end of message: "pull-up 20,27 2026-01-29"
+    const dateMatchEnd = content.match(/\s+(yesterday|today|\d{4}-\d{2}-\d{2})\s*$/i);
+    if (dateMatchEnd) {
+      dateStr = dateMatchEnd[1];
+      logContent = content.slice(0, content.lastIndexOf(dateMatchEnd[1])).trim();
+    }
   }
 
   // Parse date
