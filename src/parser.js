@@ -469,9 +469,13 @@ function parseWorkoutLog(message, rawMessage = null, timestamp = null) {
 }
 
 // Write to JSONL file (or stdout if dryRun)
-function writeWorkoutLog(record, date, dryRun = false) {
+function writeWorkoutLog(record, date, options = {}) {
+  // Support legacy boolean dryRun argument
+  const dryRun = typeof options === 'boolean' ? options : (options.dryRun || false);
+  // Default to /srv/openclaw/db if not provided
+  const dbDir = (typeof options === 'object' && options.dbDir) ? options.dbDir : '/srv/openclaw/db';
+
   const [year, month, day] = date.split('-');
-  const dbDir = '/srv/openclaw/db';
   const filepath = path.join(dbDir, year, month, `${day}.jsonl`);
 
   if (dryRun) {

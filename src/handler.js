@@ -7,10 +7,21 @@
 const { parseWorkoutLog, writeWorkoutLog } = require('./parser.js');
 
 // Called when a message matching /log is received
-function handleWorkoutMessage(message, source = 'telegram', timestamp = null, dryRun = false) {
+function handleWorkoutMessage(message, source = 'telegram', timestamp = null, options = {}) {
+  // Support legacy boolean dryRun
+  let dryRun = false;
+  let dbDir = undefined;
+  
+  if (typeof options === 'boolean') {
+      dryRun = options;
+  } else if (typeof options === 'object') {
+      dryRun = !!options.dryRun;
+      dbDir = options.dbDir;
+  }
+
   try {
     const { record, date } = parseWorkoutLog(message, message, timestamp);
-    const filepath = writeWorkoutLog(record, date, dryRun);
+    const filepath = writeWorkoutLog(record, date, { dryRun, dbDir });
     
     const statusMsg = dryRun ? 'Would log to' : 'Logged to';
     return {

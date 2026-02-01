@@ -134,6 +134,18 @@ npm run verify-db -- ../fitness/db
 
 This will re-parse the `raw` strings in each `.jsonl` file and ensure the stored fields match the parser's output.
 
+**Note:** `npm run` doesn't pass arguments directly. Always invoke the scripts with `node` directly for testing.
+
+### Custom Database Directory
+
+You can specify a custom database directory using the `--db-dir` flag:
+
+```bash
+node index.js --db-dir ./my-backups "/log squat 315x5x3"
+```
+
+This is useful for local testing or managing multiple databases.
+
 ## Output Format
 
 Each log entry is saved as a single-line JSON record in `/srv/openclaw/db/YYYY/MM/DD.jsonl`:
