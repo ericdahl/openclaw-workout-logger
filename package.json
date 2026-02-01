@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "verify-db": "node scripts/verify-db.js"
+    "verify-db": "node scripts/verify-db.js",
+    "format": "node src/formatter.js"
   },
   "keywords": [
     "workout",

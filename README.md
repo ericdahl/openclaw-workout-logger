@@ -52,6 +52,24 @@ If you forgot to log it on the day, add a date (at start or end):
 /log pull-up 20,27 2026-01-29
 ```
 
+### Viewing Logs
+
+To view your logs in a concise, human-readable format, pipe the JSONL files to the formatter:
+
+```bash
+# View all logs
+cat /srv/openclaw/db/**/*.jsonl | npm run format
+
+# View specific day
+cat /srv/openclaw/db/2026/02/01.jsonl | npm run format
+```
+
+**Output Example:**
+```
+[2026-02-01] Squat: 315x5x5 @ RPE 8 - "felt strong"
+[2026-02-01] Treadmill: 10 min, 3 mi, 7.2 mph
+```
+
 ## Supported Exercise Types
 
 ### Strength Exercises
@@ -214,6 +232,14 @@ const result = handleWorkoutMessage("/log squat 315x5x3 rpe8 felt strong");
 
 ### `src/monitor.js`
 Tracks processed messages to avoid duplicates. Used for deduplication in automated integrations.
+
+### `src/formatter.js`
+Converts JSONL records into concise human-readable strings. Reads from stdin and writes to stdout.
+
+**CLI Usage:**
+```bash
+cat logs.jsonl | npm run format
+```
 
 ### `scripts/verify-db.js`
 Database validation utility. Re-parses the `raw` field of every record in a directory (recursively) and compares it with the saved JSON fields to ensure data integrity and format consistency.
