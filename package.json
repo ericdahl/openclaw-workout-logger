@@ -4,7 +4,9 @@
   "description": "Parse and log workout sessions from Telegram to JSONL database",
   "main": "src/handler.js",
   "scripts": {
-    "test": "echo 'Run tests directly: node src/parser.js --dry-run \"/log squat 315x5x3\"'"
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "verify-db": "node scripts/verify-db.js"
   },
   "keywords": [
     "workout",

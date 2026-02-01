@@ -102,7 +102,19 @@ node src/parser.js "/log squat 315x5x3 rpe8 felt strong"
 - Shows where it *would* be saved
 - **Does NOT write to database**
 
-**Note:** `npm run` doesn't pass arguments directly. Always invoke the scripts with `node` directly for testing.
+### Database Verification
+
+Validate your entire database or a specific backfilled repository against the current parser logic:
+
+```bash
+# Verify the default database
+npm run verify-db -- /srv/openclaw/db
+
+# Verify a different repository or directory
+npm run verify-db -- ../fitness/db
+```
+
+This will re-parse the `raw` strings in each `.jsonl` file and ensure the stored fields match the parser's output.
 
 ## Output Format
 
@@ -202,6 +214,14 @@ const result = handleWorkoutMessage("/log squat 315x5x3 rpe8 felt strong");
 
 ### `src/monitor.js`
 Tracks processed messages to avoid duplicates. Used for deduplication in automated integrations.
+
+### `scripts/verify-db.js`
+Database validation utility. Re-parses the `raw` field of every record in a directory (recursively) and compares it with the saved JSON fields to ensure data integrity and format consistency.
+
+**CLI Usage:**
+```bash
+npm run verify-db -- <path-to-db-dir>
+```
 
 ## Configuration
 
