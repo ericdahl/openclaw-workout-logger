@@ -192,8 +192,13 @@ function parseStrengthWorkout(exerciseNorm, rest, isoTs) {
 
   const firstPart = parts[0];
 
+  // Format: Single number for bodyweight (e.g. "20")
+  if (isBodyweight && firstPart.match(/^\d+$/)) {
+    sets.push({ reps: parseInt(firstPart) });
+    partsConsumed = 1;
+  }
   // Format: comma-separated reps only (bodyweight): "20,20,25"
-  if (firstPart.match(/^[\d,x]+$/) && firstPart.includes(',')) {
+  else if (firstPart.match(/^[\d,x]+$/) && firstPart.includes(',')) {
     const repList = parseRepList(firstPart);
     sets = repList.map(r => r.failed ? { reps: 0, failed: true } : { reps: r.reps });
     partsConsumed = 1;
@@ -378,8 +383,8 @@ function parseWorkoutLog(message, rawMessage = null, timestamp = null) {
   let dateStr = null;
   let logContent = content;
   
-  // Try start of message: "2026-01-29: pull-up 20,27"
-  const dateMatchStart = content.match(/^(yesterday|today|\d{4}-\d{2}-\d{2})\s*:\s*/i);
+  // Try start of message: "2026-01-29: pull-up 20,27" or "2026-01-28 pull-up 20"
+  const dateMatchStart = content.match(/^(yesterday|today|\d{4}-\d{2}-\d{2})(?:\s*:\s*|\s+)/i);
   if (dateMatchStart) {
     dateStr = dateMatchStart[1];
     logContent = content.slice(dateMatchStart[0].length);
