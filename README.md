@@ -79,6 +79,31 @@ If you forgot to log it on the day, add a date (at start or end):
 - **Rowing** (rower, row machine)
 - **Stationary Bike** (bike)
 
+## Testing
+
+Test your logs without writing to the database using `--dry-run`:
+
+```bash
+# Test parser (dry-run)
+node src/parser.js --dry-run "/log squat 315x5x3 rpe8 felt strong"
+
+# Test handler (dry-run, full pipeline)
+node src/handler.js --dry-run "/log squat 315x5x3 rpe8 felt strong"
+
+# Test main entry point (dry-run)
+node index.js --dry-run "/log pull-up 20,27 2026-01-29"
+
+# Run without --dry-run to actually write to DB
+node src/parser.js "/log squat 315x5x3 rpe8 felt strong"
+```
+
+**Dry-run mode:**
+- Outputs the parsed record to stdout
+- Shows where it *would* be saved
+- **Does NOT write to database**
+
+**Note:** `npm run` doesn't pass arguments directly. Always invoke the scripts with `node` directly for testing.
+
 ## Output Format
 
 Each log entry is saved as a single-line JSON record in `/srv/openclaw/db/YYYY/MM/DD.jsonl`:
@@ -143,6 +168,9 @@ Core parsing logic. Accepts a `/log` message string and returns a structured JSO
 **CLI Usage:**
 ```bash
 node src/parser.js "/log squat 315x5x3 rpe8 felt strong"
+
+# Dry run (parse only, don't write to DB)
+node src/parser.js --dry-run "/log squat 315x5x3 rpe8 felt strong"
 ```
 
 **Module Usage:**
@@ -159,6 +187,9 @@ Wrapper function for processing messages. Handles errors gracefully.
 **CLI Usage:**
 ```bash
 node src/handler.js "/log squat 315x5x3 rpe8 felt strong"
+
+# Dry run (parse and validate, don't write)
+node src/handler.js --dry-run "/log squat 315x5x3 rpe8 felt strong"
 ```
 
 **Module Usage:**

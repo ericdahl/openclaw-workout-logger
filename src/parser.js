@@ -468,11 +468,16 @@ function parseWorkoutLog(message, rawMessage = null, timestamp = null) {
   };
 }
 
-// Write to JSONL file
-function writeWorkoutLog(record, date) {
+// Write to JSONL file (or stdout if dryRun)
+function writeWorkoutLog(record, date, dryRun = false) {
   const [year, month, day] = date.split('-');
   const dbDir = '/srv/openclaw/db';
   const filepath = path.join(dbDir, year, month, `${day}.jsonl`);
+
+  if (dryRun) {
+    // Just return the path, don't write
+    return filepath;
+  }
 
   // Ensure directory exists
   const dir = path.dirname(filepath);
@@ -493,17 +498,28 @@ module.exports = {
 
 // CLI usage
 if (require.main === module) {
-  const message = process.argv[2];
+  let dryRun = false;
+  let message = process.argv[2];
+
+  if (message === '--dry-run') {
+    dryRun = true;
+    message = process.argv[3];
+  }
+
   if (!message) {
-    console.error('Usage: workout-parser.js "/log squat 225x5x3 rpe8"');
+    console.error('Usage: src/parser.js [--dry-run] "/log squat 225x5x3 rpe8"');
     process.exit(1);
   }
 
   try {
     const { record, date } = parseWorkoutLog(message);
-    const filepath = writeWorkoutLog(record, date);
+    const filepath = writeWorkoutLog(record, date, dryRun);
     console.log(JSON.stringify(record, null, 2));
-    console.log(`\nSaved to: ${filepath}`);
+    if (dryRun) {
+      console.log(`\nDry run: would save to ${filepath}`);
+    } else {
+      console.log(`\nSaved to: ${filepath}`);
+    }
   } catch (err) {
     console.error('Error:', err.message);
     process.exit(1);
