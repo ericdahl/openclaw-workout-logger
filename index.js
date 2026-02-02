@@ -19,7 +19,7 @@ if (require.main === module) {
   // Parse arguments
   let dryRun = false;
   let dbDir = undefined;
-  let source = 'manual';
+  let source = 'telegram';  // Default to telegram (can override with --source)
   const args = [];
 
   for (let i = 0; i < rawArgs.length; i++) {
@@ -53,7 +53,7 @@ Examples:
 Options:
   --dry-run         Parse and output to stdout without writing to database
   --db-dir <path>   Custom database directory (default: /srv/openclaw/db)
-  --source <name>   Source of the log (default: manual)
+  --source <name>   Source of the log (default: telegram)
 
 For more info, see README.md or examples/test-cases.md
     `);
