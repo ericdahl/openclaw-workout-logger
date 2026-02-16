@@ -1,353 +1,270 @@
-# Workout Logger
+# Workout Logger (Python)
 
-Parse and store workout logs from Telegram into a JSONL time-series database.
+Python-based CLI for logging workouts to JSONL database with built-in git integration.
 
-## Overview
+## Features
 
-This tool parses `/log` messages from Telegram and converts them into structured JSON records saved to `/srv/openclaw/db/YYYY/MM/DD.jsonl`.
+- **Clean CLI syntax**: No `/log` prefix required when using the CLI
+- **Built-in git integration**: Automatic commits after each entry
+- **Date handling**: Support for "yesterday", "today", and explicit dates (YYYY-MM-DD)
+- **Comprehensive parsing**: Handles strength, bodyweight, machine, and cardio workouts
+- **Exercise aliases**: 75+ exercise name mappings (e.g., `sq` → `squat`, `bp` → `bench_press`)
+- **RPE tracking**: Rate of Perceived Exertion (1-10 scale)
+- **Notes support**: Add contextual notes to any workout
 
-**Format:** `weight x sets x reps` (or `reps,reps,reps` for bodyweight with variable reps per set)
+## Installation
 
-## Usage
-
-### Send logs via Telegram
-
-**Strength/Machine (weight x sets x reps):**
-```
-/log squat 315x5x3 rpe8 felt strong
-/log ohp 145x5x3 last set grindy
-/log face pulls 60x3x15
-```
-
-**Bodyweight (comma-separated reps):**
-```
-/log pull-up 20,20,25
-/log dip 15,15,12,10
-```
-
-**With failed sets (x marks failed):**
-```
-/log deadlift 405 2,1,x
-```
-
-**Dumbbell exercises:**
-```
-/log db bench 2x90 4x10,7
-```
-
-**Cardio:**
-```
-/log treadmill 1 degree incline, 7.2 mph, 3.0 miles
-/log treadmill 10min 3.2mph incline15 steady pace
-```
-
-### Backdate logs
-
-If you forgot to log it on the day, add a date (at start or end):
-
-```
-/log yesterday: squat 315x5x3 rpe8
-/log 2026-01-31: deadlift 405x5x1 rpe9
-/log squat 315x5x3 rpe8 2026-01-31
-/log pull-up 20,27 2026-01-29
-```
-
-### Viewing Logs
-
-To view your logs in a concise, human-readable format, pipe the JSONL files to the formatter:
+### From Source (Development)
 
 ```bash
-# View all logs
-cat /srv/openclaw/db/**/*.jsonl | npm run format
-
-# View specific day
-cat /srv/openclaw/db/2026/02/01.jsonl | npm run format
+cd /Users/ecd/repos/openclaw-workout-logger
+pip install -e .
 ```
 
-**Output Example:**
-```
-[2026-02-01] Squat: 315x5x5 @ RPE 8 - "felt strong"
-[2026-02-01] Treadmill: 10 min, 3 mi, 7.2 mph
-```
-
-## Supported Exercise Types
-
-### Strength Exercises
-- **Squat** (sq)
-- **Bench Press** (bench, bp)
-- **Deadlift** (dl)
-- **Overhead Press** (ohp, op, press)
-- **Barbell Row** (row, bent over row)
-- **Weighted Dip**
-- **Dip**
-- **Chin Up**
-- **Weighted Chin Up**
-- **Pull Up** (pullup)
-- **Weighted Pull Up** (weighted pull-up)
-
-### Machine Exercises
-- **Ab Crunch** (ab_crunch)
-- **Cybex Ab Crunch**
-- **Leg Press**
-- **Hack Squat**
-- **Face Pulls**
-
-### Cardio
-- **Treadmill** (tm)
-- **Rowing** (rower, row machine)
-- **Stationary Bike** (bike)
-
-## Testing
-
-Test your logs without writing to the database using `--dry-run`:
+### From Git (Production)
 
 ```bash
-# Test parser (dry-run)
-node src/parser.js --dry-run "/log squat 315x5x3 rpe8 felt strong"
-
-# Test handler (dry-run, full pipeline)
-node src/handler.js --dry-run "/log squat 315x5x3 rpe8 felt strong"
-
-# Test main entry point (dry-run)
-node index.js --dry-run "/log pull-up 20,27 2026-01-29"
-
-# Run without --dry-run to actually write to DB
-node src/parser.js "/log squat 315x5x3 rpe8 felt strong"
+pip install git+https://github.com/ericdahl/workout-logger.git
 ```
 
-**Dry-run mode:**
-- Outputs the parsed record to stdout
-- Shows where it *would* be saved
-- **Does NOT write to database**
+## Quick Start
 
-### Database Verification
-
-Validate your entire database or a specific backfilled repository against the current parser logic:
+### Basic Usage
 
 ```bash
-# Verify the default database
-npm run verify-db -- /srv/openclaw/db
+# Log a strength workout
+workout-logger log "deadlift 405 5x2"
 
-# Verify a different repository or directory
-npm run verify-db -- ../fitness/db
+# With RPE and notes
+workout-logger log "squat 315x5x3 rpe8 felt strong"
+
+# Bodyweight exercises
+workout-logger log "pull-up 20,20,25"
+
+# Cardio
+workout-logger log "treadmill 10min 3.2mph incline15"
+
+# Notes
+workout-logger note "Felt tired today"
 ```
 
-This will re-parse the `raw` strings in each `.jsonl` file and ensure the stored fields match the parser's output.
+### Date Modifiers
 
-**Note:** `npm run` doesn't pass arguments directly. Always invoke the scripts with `node` directly for testing.
-
-### CLI Options
-
-**Custom Database Directory:**
 ```bash
-node index.js --db-dir ./my-backups "/log squat 315x5x3"
+# Yesterday's workout
+workout-logger log "yesterday: squat 315x5x3"
+
+# Specific date
+workout-logger log "2026-01-30: deadlift 405x1x5"
 ```
 
-**Custom Source:**
+### Options
+
 ```bash
-node index.js --source backfill "/log squat 315x5x3"
-```
-Default source is `manual` when using the CLI.
+# Dry run (parse without writing)
+workout-logger log "bench 225x5x3" --dry-run
 
-## Output Format
+# Custom database directory
+workout-logger log "squat 315x5x3" --db-dir ~/my-fitness-db
 
-Each log entry is saved as a single-line JSON record in `/srv/openclaw/db/YYYY/MM/DD.jsonl`:
+# Skip git commit
+workout-logger log "bench 225x5x3" --no-commit
 
-### Strength/Machine Workout
-```json
-{
-  "ts": "2026-02-01T11:29:48-08:00",
-  "type": "strength",
-  "exercise": "squat",
-  "unit": "lb",
-  "sets": [
-    {"weight": 315, "reps": 5},
-    {"weight": 315, "reps": 5},
-    {"weight": 315, "reps": 5}
-  ],
-  "rpe": 8,
-  "notes": "felt strong",
-  "source": "telegram",
-  "raw": "/log squat 315x5x3 rpe8 felt strong"
-}
-```
+# Override date
+workout-logger log "squat 315x5x3" --date 2026-02-01
 
-### Cardio Workout
-```json
-{
-  "ts": "2026-02-01T11:29:51-08:00",
-  "type": "cardio",
-  "modality": "treadmill",
-  "duration_min": 10,
-  "speed_mph": 3.2,
-  "incline_percent": 15,
-  "distance_miles": 3.0,
-  "notes": "steady pace",
-  "source": "telegram",
-  "raw": "/log treadmill 10min 3.2mph incline15 3.0 miles steady pace"
-}
-```
-
-## Database Structure
-
-```
-/srv/openclaw/db/
-├── 2026/
-│   ├── 01/
-│   │   ├── 31.jsonl
-│   │   └── ...
-│   ├── 02/
-│   │   ├── 01.jsonl
-│   │   └── ...
-│   └── ...
-└── ...
-```
-
-Each `.jsonl` file contains one JSON record per line (newline-delimited JSON).
-
-## Scripts
-
-### `src/parser.js`
-Core parsing logic. Accepts a `/log` message string and returns a structured JSON record.
-
-**CLI Usage:**
-```bash
-node src/parser.js "/log squat 315x5x3 rpe8 felt strong"
-
-# Dry run (parse only, don't write to DB)
-node src/parser.js --dry-run "/log squat 315x5x3 rpe8 felt strong"
-```
-
-**Module Usage:**
-```javascript
-const { parseWorkoutLog, writeWorkoutLog } = require('./src/parser.js');
-
-const { record, date } = parseWorkoutLog("/log squat 315x5x3 rpe8 felt strong");
-const filepath = writeWorkoutLog(record, date);
-```
-
-### `src/handler.js`
-Wrapper function for processing messages. Handles errors gracefully.
-
-**CLI Usage:**
-```bash
-node src/handler.js "/log squat 315x5x3 rpe8 felt strong"
-
-# Dry run (parse and validate, don't write)
-node src/handler.js --dry-run "/log squat 315x5x3 rpe8 felt strong"
-```
-
-**Module Usage:**
-```javascript
-const { handleWorkoutMessage } = require('./src/handler.js');
-
-const result = handleWorkoutMessage("/log squat 315x5x3 rpe8 felt strong");
-// Returns: { success: true/false, message: string, record?: object, error?: string }
-```
-
-### `src/monitor.js`
-Tracks processed messages to avoid duplicates. Used for deduplication in automated integrations.
-
-### `src/formatter.js`
-Converts JSONL records into concise human-readable strings. Reads from stdin and writes to stdout.
-
-**CLI Usage:**
-```bash
-cat logs.jsonl | npm run format
-```
-
-### `scripts/verify-db.js`
-Database validation utility. Re-parses the `raw` field of every record in a directory (recursively) and compares it with the saved JSON fields to ensure data integrity and format consistency.
-
-**CLI Usage:**
-```bash
-npm run verify-db -- <path-to-db-dir>
+# Custom source identifier
+workout-logger log "bench 225x5x3" --source backfill
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-Before using the monitor/hook functionality, set your Telegram user ID:
+- `WORKOUT_LOGGER_DB`: Default database directory (defaults to `~/repos/fitness/db`)
+
+### Database Structure
+
+Workouts are stored in a date-based directory structure:
+
+```
+~/repos/fitness/db/
+├── 2026/
+│   ├── 01/
+│   │   ├── 30.jsonl
+│   │   └── 31.jsonl
+│   ├── 02/
+│   │   ├── 01.jsonl
+│   │   ├── 02.jsonl
+│   │   └── 03.jsonl
+```
+
+Each file contains JSONL (one JSON object per line):
+
+```json
+{"ts":"2026-02-16T10:30:45-08:00","type":"strength","exercise":"squat","unit":"lb","sets":[{"weight":315,"reps":3},{"weight":315,"reps":3},{"weight":315,"reps":3}],"rpe":8,"notes":"felt strong","source":"cli","raw":"/log squat 315x5x3 rpe8 felt strong"}
+```
+
+## Workout Formats
+
+### Strength Exercises
 
 ```bash
-export AUTHORIZED_TELEGRAM_ID=12345678
+# Weight x Sets x Reps
+workout-logger log "squat 315x5x3"           # 315 lb, 5 sets, 3 reps each
+workout-logger log "bench 225x3x5"           # 225 lb, 3 sets, 5 reps each
+
+# Weight followed by Sets x Reps
+workout-logger log "deadlift 405 1x3"        # 405 lb, 1 set, 3 reps
+
+# Weight with variable reps
+workout-logger log "squat 405 2,1,x"         # 405 lb, sets of 2, 1, then failed
 ```
 
-Or create a `.env` file:
+### Bodyweight Exercises
 
 ```bash
-cp .env.example .env
-# Edit .env and set your Telegram user ID
+# Comma-separated reps
+workout-logger log "pull-up 20,20,25"        # 3 sets: 20, 20, 25 reps
+
+# Uniform sets
+workout-logger log "pull-up 7x10"            # 7 sets of 10 reps
+
+# Single set
+workout-logger log "pull-up 20"              # 1 set of 20 reps
+
+# Weighted bodyweight
+workout-logger log "weighted pull-up 25x5x10"  # +25 lb, 5 sets, 10 reps
 ```
 
-To find your Telegram user ID:
-- Chat with [@userinfobot](https://t.me/userinfobot) on Telegram
-- Check OpenClaw logs for the ID when you send a message
+### Machine Exercises
 
-**Note:** `.env` is in `.gitignore` and will not be committed to git.
+Same format as strength exercises:
 
-## Integration with OpenClaw
-
-The scripts are invoked automatically when you send a `/log` message from Telegram. The integration:
-
-1. Intercepts messages from authorized Telegram user
-2. Checks if message starts with `/log`
-3. Calls `handleWorkoutMessage()` to parse and save
-4. Responds with confirmation in Telegram
-
-**Setup required:**
-- Set `AUTHORIZED_TELEGRAM_ID` environment variable
-- Message will be ignored if user ID doesn't match
-
-No manual invocation needed — just send the message and it's logged automatically.
-
-## Error Handling
-
-If a message can't be parsed, you'll receive a clarification request:
-
-```
-❌ Unknown exercise: "foo". Could not normalize.
+```bash
+workout-logger log "leg press 405x3x10"
+workout-logger log "face pulls 60x3x15"
+workout-logger log "ab crunch 120x3x15"
 ```
 
-Common issues:
-- **Unknown exercise:** Add exercise to the `EXERCISE_MAP` in `src/parser.js`
-- **Invalid format:** Make sure format is `weight x sets x reps` (e.g., `315x5x3`)
-- **Timestamp issues:** Timestamps are always Pacific time (`-08:00` offset)
+### Cardio
+
+```bash
+# Treadmill
+workout-logger log "treadmill 10min 3.2mph incline15"
+workout-logger log "tm 1 degree incline, 7.2 mph, 3.0 miles"
+
+# Rowing machine
+workout-logger log "rowing 30min"
+
+# Stationary bike
+workout-logger log "bike 20min"
+```
+
+## Exercise Aliases
+
+The parser recognizes many common exercise aliases:
+
+| Canonical Name | Aliases |
+|----------------|---------|
+| squat | sq |
+| bench_press | bench, bp, bench press |
+| deadlift | dl |
+| ohp | op, press, overhead press |
+| barbell_row | row, rows, bent over row |
+| pull_up | pull-up, pullup |
+| weighted_pull_up | weighted pull-up, weighted pullup |
+| treadmill | tm |
+| rowing | rower, row machine |
+
+See `workout_logger/exercises.py` for the full list (75+ aliases).
+
+## Git Integration
+
+Every workout is automatically committed to git with a descriptive message:
+
+```bash
+$ workout-logger log "squat 315x5x3 rpe8"
+✓ Logged to ~/repos/fitness/db/2026/02/16.jsonl
+✓ Committed to git
+
+$ cd ~/repos/fitness && git log -1 --oneline
+abc123 workout: squat 315x5x3 rpe8
+```
+
+Commit messages are automatically formatted:
+- Strength/bodyweight: `"workout: squat 315x5x3 rpe8"`
+- Notes: `"note: Felt tired today"`
+
+To skip git commit:
+
+```bash
+workout-logger log "squat 315x5x3" --no-commit
+```
 
 ## Development
 
 ### Run Tests
+
 ```bash
-npm run test:parser "/log squat 315x5x3"
-npm run test:handler "/log ohp 145x5x3"
+pip install -e ".[dev]"
+pytest tests/
 ```
 
-### Add New Exercises
+### Project Structure
 
-Edit `src/parser.js` and add to `EXERCISE_MAP`:
+```
+workout_logger/
+├── __init__.py        # Package exports
+├── cli.py             # Click-based CLI
+├── parser.py          # Core parsing logic
+├── writer.py          # JSONL writing + git integration
+├── exercises.py       # Exercise maps and types
+├── models.py          # Pydantic data models
+└── formatter.py       # Human-readable output
 
-```javascript
-const EXERCISE_MAP = {
-  'new_exercise': 'normalized_name',
-  'alias': 'normalized_name',
-};
+tests/
+├── test_parser.py     # Parser tests
+├── test_writer.py     # Writer tests
+└── test_cli.py        # CLI tests
 ```
 
-Then add the type:
+## Migration from Node.js
 
-```javascript
-const EXERCISE_TYPE = {
-  'normalized_name': 'strength', // or 'machine', 'bodyweight', 'cardio'
-};
+The Python version is a direct port of the Node.js implementation with feature parity:
+
+1. Install Python version: `pip install -e .`
+2. Test with dry run: `workout-logger log "squat 315x5x3" --dry-run`
+3. Verify output matches Node.js version
+4. Update openclaw to use `workout-logger` instead of `node index.js`
+
+Key differences:
+- **No `/log` prefix**: CLI usage doesn't require `/log` or `/note` prefix
+- **Built-in git**: Git integration is built into the application (no separate script)
+- **Better help**: `workout-logger --help` shows comprehensive usage
+
+## Troubleshooting
+
+### Git commit fails
+
+Ensure the database directory is inside a git repository:
+
+```bash
+cd ~/repos/fitness
+git init  # If not already a git repo
 ```
 
-## File Naming
+### Import errors
 
-- `parser.js` — Core parsing (exports `parseWorkoutLog`, `writeWorkoutLog`)
-- `handler.js` — High-level handler (exports `handleWorkoutMessage`)
-- `monitor.js` — State tracking for deduplication (exports `processMessage`)
-- `.state.json` — Runtime state (not versioned, created at runtime)
+Ensure all dependencies are installed:
+
+```bash
+pip install click pydantic python-dateutil gitpython
+```
+
+### Timezone issues
+
+The parser uses Pacific Time (America/Los_Angeles) by default. All timestamps are stored with timezone offset.
 
 ## License
 
