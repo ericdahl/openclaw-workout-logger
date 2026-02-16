@@ -1,0 +1,23 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# dependencies = [
+#   "click>=8.0",
+#   "pydantic>=2.0",
+#   "python-dateutil>=2.8",
+#   "gitpython>=3.1",
+# ]
+# ///
+"""
+Workout logger CLI wrapper - run directly with uv.
+Usage: ./workout log "squat 315x5x3 rpe8"
+"""
+import sys
+from pathlib import Path
+
+# Add workout_logger to path
+sys.path.insert(0, str(Path(__file__).parent))
+
+from workout_logger.cli import main
+
+if __name__ == "__main__":
+    main()

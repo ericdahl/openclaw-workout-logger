@@ -12,19 +12,40 @@ Python-based CLI for logging workouts to JSONL database with built-in git integr
 - **RPE tracking**: Rate of Perceived Exertion (1-10 scale)
 - **Notes support**: Add contextual notes to any workout
 
-## Installation
+## Installation & Usage with `uv`
 
-### From Source (Development)
+### Option 1: Run directly from repo (recommended)
 
 ```bash
-cd /Users/ecd/repos/openclaw-workout-logger
-pip install -e .
+# From the repo directory
+uv run workout-logger log "squat 315x5x3 rpe8"
+uv run workout-logger note "Felt great today"
 ```
 
-### From Git (Production)
+No installation needed! `uv run` automatically handles dependencies from `pyproject.toml`.
+
+### Option 2: Use the wrapper script
 
 ```bash
-pip install git+https://github.com/ericdahl/workout-logger.git
+# From the repo directory
+./workout log "squat 315x5x3 rpe8"
+./workout note "Felt great today"
+```
+
+The `workout` script uses PEP 723 inline dependencies and runs with `uv` automatically.
+
+### Option 3: Install as a global tool
+
+```bash
+# Install from repo
+cd /path/to/openclaw-workout-logger
+uv tool install .
+
+# Or install from GitHub
+uv tool install git+https://github.com/ericdahl/openclaw-workout-logger
+
+# Then use anywhere
+workout-logger log "deadlift 405 5x2"
 ```
 
 ## Quick Start
@@ -33,19 +54,22 @@ pip install git+https://github.com/ericdahl/workout-logger.git
 
 ```bash
 # Log a strength workout
-workout-logger log "deadlift 405 5x2"
+uv run workout-logger log "deadlift 405 5x2"
 
 # With RPE and notes
-workout-logger log "squat 315x5x3 rpe8 felt strong"
+uv run workout-logger log "squat 315x5x3 rpe8 felt strong"
 
 # Bodyweight exercises
-workout-logger log "pull-up 20,20,25"
+uv run workout-logger log "pull-up 20,20,25"
 
 # Cardio
-workout-logger log "treadmill 10min 3.2mph incline15"
+uv run workout-logger log "treadmill 10min 3.2mph incline15"
 
 # Notes
-workout-logger note "Felt tired today"
+uv run workout-logger note "Felt tired today"
+
+# Or use the wrapper script
+./workout log "squat 315x5x3 rpe8"
 ```
 
 ### Date Modifiers
