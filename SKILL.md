@@ -1,18 +1,18 @@
 ---
-name: workout-logger
+name: workout
 description: Logs fitness activities and notes to a local JSONL database with git integration.
 enabled: true
 metadata:
   openclaw:
     requires:
-      bins: ["workout-logger"]
+      bins: ["workout"]
     permissions:
       execution: "safe"
 ---
 
 # Workout Logger
 
-This skill allows the agent to log workouts and notes using the `workout-logger` CLI. 
+This skill allows the agent to log workouts and notes using the `workout` CLI. 
 
 ## Usage Rules
 
@@ -25,7 +25,7 @@ This skill allows the agent to log workouts and notes using the `workout-logger`
 ## Commands
 
 ### 1. Log Workout
-**Signature:** `workout-logger log "<description>"`
+**Signature:** `workout log "<description>"`
 
 The `<description>` string must follow these patterns:
 * **Strength:** `<exercise> <weight>x<sets>x<reps> [rpe<N>]`
@@ -37,21 +37,21 @@ The `<description>` string must follow these patterns:
     * *Example:* "treadmill 10min 3.2mph"
 
 ### 2. Add Note
-**Signature:** `workout-logger note "<text>"`
+**Signature:** `workout note "<text>"`
 
 Use this for qualitative feedback not attached to a specific lift.
 
 ## Examples
 
 **User:** "Just hit bench press, 225 for 3 sets of 5, felt easy."
-**Command:** `workout-logger log "bench 225x3x5 rpe6"`
+**Command:** `workout log "bench 225x3x5 rpe6"`
 *(Note: Agent infers RPE 6 from "felt easy" if not specified, or just omits it)*
 
 **User:** "Yesterday I ran on the treadmill for 30 mins."
-**Command:** `workout-logger log "yesterday: treadmill 30min"`
+**Command:** `workout log "yesterday: treadmill 30min"`
 
 **User:** "My lower back is a bit sore today."
-**Command:** `workout-logger note "Lower back sore"`
+**Command:** `workout note "Lower back sore"`
 
 **User:** "Log 405 deadlift, 1 set of 5."
-**Command:** `workout-logger log "deadlift 405 1x5"`
+**Command:** `workout log "deadlift 405 1x5"`
