@@ -33,9 +33,10 @@ def main(ctx):
               help='Database directory (default: ~/repos/fitness/db)')
 @click.option('--date', 'date_override', help='Override date (YYYY-MM-DD)')
 @click.option('--source', default='cli', help='Source identifier (default: cli)')
-@click.option('--no-commit', is_flag=True, help='Skip git commit')
+@click.option('--no-commit', is_flag=True, help='Skip git commit and push')
+@click.option('--no-push', is_flag=True, help='Skip git push (still commits locally)')
 def log(message: str, dry_run: bool, db_dir: Optional[str], date_override: Optional[str],
-        source: str, no_commit: bool):
+        source: str, no_commit: bool, no_push: bool):
     """
     Log a workout entry.
 
@@ -98,7 +99,8 @@ def log(message: str, dry_run: bool, db_dir: Optional[str], date_override: Optio
             date_str,
             db_dir=db_path,
             dry_run=dry_run,
-            auto_commit=not no_commit
+            auto_commit=not no_commit,
+            auto_push=not no_push and not no_commit
         )
 
         # Show output
@@ -109,6 +111,8 @@ def log(message: str, dry_run: bool, db_dir: Optional[str], date_override: Optio
             click.echo(f"✓ Logged to {filepath}")
             if not no_commit:
                 click.echo("✓ Committed to git")
+                if not no_push:
+                    click.echo("✓ Pushed to remote")
 
     except ValueError as e:
         click.echo(f"❌ Parse error: {e}", err=True)
@@ -128,9 +132,10 @@ def log(message: str, dry_run: bool, db_dir: Optional[str], date_override: Optio
               help='Database directory (default: ~/repos/fitness/db)')
 @click.option('--date', 'date_override', help='Override date (YYYY-MM-DD)')
 @click.option('--source', default='cli', help='Source identifier (default: cli)')
-@click.option('--no-commit', is_flag=True, help='Skip git commit')
+@click.option('--no-commit', is_flag=True, help='Skip git commit and push')
+@click.option('--no-push', is_flag=True, help='Skip git push (still commits locally)')
 def note(message: str, dry_run: bool, db_dir: Optional[str], date_override: Optional[str],
-         source: str, no_commit: bool):
+         source: str, no_commit: bool, no_push: bool):
     """
     Log a note entry.
 
@@ -173,7 +178,8 @@ def note(message: str, dry_run: bool, db_dir: Optional[str], date_override: Opti
             date_str,
             db_dir=db_path,
             dry_run=dry_run,
-            auto_commit=not no_commit
+            auto_commit=not no_commit,
+            auto_push=not no_push and not no_commit
         )
 
         # Show output
@@ -184,6 +190,8 @@ def note(message: str, dry_run: bool, db_dir: Optional[str], date_override: Opti
             click.echo(f"✓ Note logged to {filepath}")
             if not no_commit:
                 click.echo("✓ Committed to git")
+                if not no_push:
+                    click.echo("✓ Pushed to remote")
 
     except ValueError as e:
         click.echo(f"❌ Parse error: {e}", err=True)

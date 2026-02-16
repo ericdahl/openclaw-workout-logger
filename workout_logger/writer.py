@@ -74,13 +74,14 @@ def formatCommitMessage(record: Dict[str, Any]) -> str:
     return f"workout: {msg}"
 
 
-def commitWorkout(filepath: Path, record: Dict[str, Any]) -> None:
+def commitWorkout(filepath: Path, record: Dict[str, Any], auto_push: bool = True) -> None:
     """
-    Auto-commit workout entry to git.
+    Auto-commit workout entry to git and optionally push.
 
     Args:
         filepath: Path to the JSONL file
         record: The workout record dict
+        auto_push: If True, push to remote after committing
     """
     if not GIT_AVAILABLE:
         raise RuntimeError("GitPython not installed. Install with: pip install gitpython")
@@ -100,6 +101,11 @@ def commitWorkout(filepath: Path, record: Dict[str, Any]) -> None:
 
         repo.index.commit(full_msg)
 
+        # Push to remote if requested
+        if auto_push:
+            origin = repo.remote(name='origin')
+            origin.push()
+
     except git.exc.InvalidGitRepositoryError:
         raise RuntimeError(f"Not a git repository: {filepath.parent}")
     except Exception as e:
@@ -107,9 +113,9 @@ def commitWorkout(filepath: Path, record: Dict[str, Any]) -> None:
 
 
 def writeWorkoutLog(record: Dict[str, Any], date: str, db_dir: Optional[Path] = None,
-                    dry_run: bool = False, auto_commit: bool = True) -> Path:
+                    dry_run: bool = False, auto_commit: bool = True, auto_push: bool = True) -> Path:
     """
-    Write workout record to JSONL file and optionally commit to git.
+    Write workout record to JSONL file and optionally commit/push to git.
 
     Args:
         record: The workout record dict
@@ -117,6 +123,7 @@ def writeWorkoutLog(record: Dict[str, Any], date: str, db_dir: Optional[Path] = 
         db_dir: Database directory (defaults to ~/repos/fitness/db)
         dry_run: If True, don't write file or commit
         auto_commit: If True and not dry_run, commit to git
+        auto_push: If True and auto_commit, push to remote after committing
 
     Returns:
         Path to the JSONL file
@@ -143,12 +150,12 @@ def writeWorkoutLog(record: Dict[str, Any], date: str, db_dir: Optional[Path] = 
     with open(filepath, 'a', encoding='utf-8') as f:
         f.write(json.dumps(record) + '\n')
 
-    # Auto-commit to git
+    # Auto-commit to git (and optionally push)
     if auto_commit and GIT_AVAILABLE:
         try:
-            commitWorkout(filepath, record)
+            commitWorkout(filepath, record, auto_push=auto_push)
         except RuntimeError as e:
-            # Don't fail the write operation if git commit fails
+            # Don't fail the write operation if git commit/push fails
             # Just warn (the CLI will handle this)
             pass
 

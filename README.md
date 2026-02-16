@@ -91,8 +91,11 @@ workout-logger log "bench 225x5x3" --dry-run
 # Custom database directory
 workout-logger log "squat 315x5x3" --db-dir ~/my-fitness-db
 
-# Skip git commit
+# Skip git commit and push
 workout-logger log "bench 225x5x3" --no-commit
+
+# Commit locally but don't push to remote
+workout-logger log "bench 225x5x3" --no-push
 
 # Override date
 workout-logger log "squat 315x5x3" --date 2026-02-01
@@ -100,6 +103,21 @@ workout-logger log "squat 315x5x3" --date 2026-02-01
 # Custom source identifier
 workout-logger log "bench 225x5x3" --source backfill
 ```
+
+### Git Integration
+
+**By default, every workout is automatically committed AND pushed to git:**
+
+```bash
+$ uv run workout-logger log "squat 315x5x3 rpe8"
+✓ Logged to ~/repos/fitness/db/2026/02/16.jsonl
+✓ Committed to git
+✓ Pushed to remote
+```
+
+**Use flags to control git behavior:**
+- `--no-push` - Commit locally but don't push (useful for batching multiple workouts)
+- `--no-commit` - Don't commit or push (file only)
 
 ## Configuration
 
