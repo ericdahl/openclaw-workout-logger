@@ -13,7 +13,7 @@ class StrengthSet(BaseModel):
 
     weight: Optional[float] = None
     reps: int
-    failed: bool = False
+    failed: Optional[bool] = None
 
 
 class WorkoutRecord(BaseModel):
