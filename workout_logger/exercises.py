@@ -39,6 +39,8 @@ EXERCISE_MAP: dict[str, str] = {
     'weighted pullup': 'weighted_pull_up',
     'weighted pull-up': 'weighted_pull_up',
     'shrug': 'shrug',
+    'dragon flag': 'dragon_flag',
+    'dragonflag': 'dragon_flag',
 
     # Dumbbell exercises
     'db bench': 'dumbbell_bench_press',

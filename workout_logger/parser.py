@@ -76,7 +76,7 @@ def parseRepList(rep_str: str) -> List[Dict[str, Any]]:
     return result
 
 
-def parseStrengthWorkout(exercise_norm: str, rest: str, iso_ts: str) -> Dict[str, Any]:
+def parseStrengthWorkout(exercise_norm: str, rest: str, iso_ts: str, exercise_type: Optional[str] = None) -> Dict[str, Any]:
     """
     Parse strength/bodyweight/machine workout with flexible formats:
     - "225x5x3" = 225 lb, 5 sets, 3 reps each
@@ -85,7 +85,8 @@ def parseStrengthWorkout(exercise_norm: str, rest: str, iso_ts: str) -> Dict[str
     - "2x90 4x10,7" = dumbbell 90lb each, 4 sets of 10 + 1 set of 7
     - "7x10" = 7 sets of 10 reps (bodyweight)
     """
-    exercise_type = getExerciseType(exercise_norm)
+    if exercise_type is None:
+        exercise_type = getExerciseType(exercise_norm)
     is_bodyweight = exercise_type == 'bodyweight'
 
     # Handle empty input (generic entry without sets/reps)
@@ -371,31 +372,60 @@ def parseWorkoutLog(message: str, timestamp: Optional[datetime] = None, source: 
     if len(words) == 0:
         raise ValueError('No exercise specified')
 
-    exercise_name = words[0]
-    exercise_norm = normalizeExercise(exercise_name)
-    words_consumed = 1
+    # Check for explicit type prefix: "machine: shoulder press 150x3x10"
+    exercise_norm = None
+    exercise_type = None
+    type_prefix_match = re.match(r'^(strength|bodyweight|machine|cardio)\s*:\s*', log_content, re.IGNORECASE)
+    if type_prefix_match:
+        exercise_type = type_prefix_match.group(1).lower()
+        after_prefix = log_content[len(type_prefix_match.group(0)):].strip()
+        after_words = after_prefix.split()
+        if len(after_words) == 0:
+            raise ValueError('No exercise name after type prefix')
 
-    # Try combining up to 3 words (e.g., "tricep dip machine")
-    if not exercise_norm and len(words) > 1:
-        exercise_name = f'{words[0]} {words[1]}'
+        # Find where the exercise name ends and set/rep data begins
+        # Try to consume words until we hit something that looks like set/rep data
+        name_words = []
+        rest_start = 0
+        for i, w in enumerate(after_words):
+            if re.match(r'^[\d]', w):
+                # This looks like set/rep/weight data
+                rest_start = i
+                break
+            name_words.append(w)
+            rest_start = i + 1
+
+        if not name_words:
+            raise ValueError('No exercise name after type prefix')
+
+        exercise_norm = '_'.join(w.lower() for w in name_words)
+        rest = ' '.join(after_words[rest_start:])
+    else:
+        exercise_name = words[0]
         exercise_norm = normalizeExercise(exercise_name)
-        words_consumed = 2
+        words_consumed = 1
 
-        if not exercise_norm and len(words) > 2:
-            exercise_name = f'{words[0]} {words[1]} {words[2]}'
+        # Try combining up to 3 words (e.g., "tricep dip machine")
+        if not exercise_norm and len(words) > 1:
+            exercise_name = f'{words[0]} {words[1]}'
             exercise_norm = normalizeExercise(exercise_name)
-            words_consumed = 3
+            words_consumed = 2
 
-    if not exercise_norm:
-        raise ValueError(f'Unknown exercise: "{exercise_name}". Could not normalize.')
+            if not exercise_norm and len(words) > 2:
+                exercise_name = f'{words[0]} {words[1]} {words[2]}'
+                exercise_norm = normalizeExercise(exercise_name)
+                words_consumed = 3
 
-    rest = ' '.join(words[words_consumed:])
-    exercise_type = getExerciseType(exercise_norm)
+        if not exercise_norm:
+            raise ValueError(f'Unknown exercise: "{exercise_name}". Could not normalize.')
+
+        rest = ' '.join(words[words_consumed:])
+        exercise_type = getExerciseType(exercise_norm)
 
     if exercise_type == 'cardio':
         record = parseCardioWorkout(exercise_norm, rest, iso_ts)
     elif exercise_type in ('strength', 'machine', 'bodyweight'):
-        record = parseStrengthWorkout(exercise_norm, rest, iso_ts)
+        record = parseStrengthWorkout(exercise_norm, rest, iso_ts, exercise_type=exercise_type)
     else:
         raise ValueError(f'Unknown exercise type for "{exercise_norm}"')
 
