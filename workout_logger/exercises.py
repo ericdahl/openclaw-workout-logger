@@ -40,7 +40,9 @@ EXERCISE_MAP: dict[str, str] = {
     'weighted pull-up': 'weighted_pull_up',
     'shrug': 'shrug',
     'dragon flag': 'dragon_flag',
+    'dragon-flag': 'dragon_flag',
     'dragonflag': 'dragon_flag',
+    'dragon': 'dragon_flag',
 
     # Dumbbell exercises
     'db bench': 'dumbbell_bench_press',
@@ -74,6 +76,8 @@ EXERCISE_MAP: dict[str, str] = {
     'row machine': 'rowing',
     'bike': 'stationary_bike',
     'stationary bike': 'stationary_bike',
+    'run': 'run',
+    'running': 'run',
 }
 
 # Exercise type classification - maps canonical name to exercise type
@@ -102,6 +106,7 @@ EXERCISE_TYPE: dict[str, ExerciseType] = {
     'face_pulls': 'machine',
     'lat_pulldown': 'machine',
     'treadmill': 'cardio',
+    'run': 'cardio',
     'rowing': 'cardio',
     'stationary_bike': 'cardio',
 }

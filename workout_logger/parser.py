@@ -111,8 +111,19 @@ def parseStrengthWorkout(exercise_norm: str, rest: str, iso_ts: str, exercise_ty
 
     first_part = parts[0]
 
+    # Format: weight followed by comma-separated reps for bodyweight (e.g., "45 8,7,6")
+    if is_bodyweight and re.match(r'^\d+(?:\.\d+)?$', first_part) and len(parts) > 1 and ',' in parts[1] and re.match(r'^[\d,xfXF]+$', parts[1], re.IGNORECASE):
+        weight = float(first_part)
+        rep_list = parseRepList(parts[1])
+        for r in rep_list:
+            if r.get('failed'):
+                sets.append(StrengthSet(weight=weight, reps=0, failed=True))
+            else:
+                sets.append(StrengthSet(weight=weight, reps=r['reps']))
+        parts_consumed = 2
+
     # Format: Single number for bodyweight (e.g. "20")
-    if is_bodyweight and re.match(r'^\d+$', first_part):
+    elif is_bodyweight and re.match(r'^\d+$', first_part):
         sets.append(StrengthSet(reps=int(first_part)))
         parts_consumed = 1
 
@@ -133,9 +144,11 @@ def parseStrengthWorkout(exercise_norm: str, rest: str, iso_ts: str, exercise_ty
         parts_consumed = 1
 
         # Parse sets format: "4x10,7" means 4 sets of 10, then 1 set of 7
+        # or plain comma-separated "5,5,3,1" means variable reps
         if len(parts) > 1:
             sets_format = parts[1]
             sets_match = re.match(r'^(\d+)x([\d,]+)$', sets_format, re.IGNORECASE)
+            comma_only_match = not sets_match and ',' in sets_format and re.match(r'^[\d,xfXF]+$', sets_format, re.IGNORECASE)
             if sets_match:
                 uniform_sets = int(sets_match.group(1))
                 reps_list = [int(r.strip()) for r in sets_match.group(2).split(',')]
@@ -149,6 +162,15 @@ def parseStrengthWorkout(exercise_norm: str, rest: str, iso_ts: str, exercise_ty
                 for i in range(1, len(reps_list)):
                     sets.append(StrengthSet(weight=weight, reps=reps_list[i]))
 
+                parts_consumed = 2
+
+            elif comma_only_match:
+                rep_list = parseRepList(sets_format)
+                for r in rep_list:
+                    if r.get('failed'):
+                        sets.append(StrengthSet(weight=weight, reps=0, failed=True))
+                    else:
+                        sets.append(StrengthSet(weight=weight, reps=r['reps']))
                 parts_consumed = 2
 
         if len(sets) > 0:
@@ -261,10 +283,15 @@ def parseCardioWorkout(exercise_norm: str, rest: str, iso_ts: str) -> Dict[str, 
         'modality': exercise_norm,
     }
 
-    # Duration: "10min" or "10 minutes"
+    # Duration: "10min", "10 minutes", or "MM:SS" (e.g. "27:09")
     dur_match = re.search(r'(\d+(?:\.\d+)?)\s*min(?:ute)?s?', lower_rest, re.IGNORECASE)
+    mmss_match = re.search(r'\b(\d+):(\d{2})\b', lower_rest)
     if dur_match:
         record['duration_min'] = float(dur_match.group(1))
+    elif mmss_match:
+        minutes = int(mmss_match.group(1))
+        seconds = int(mmss_match.group(2))
+        record['duration_min'] = round(minutes + seconds / 60, 4)
 
     # Speed: "3.2mph" or "7.2 mph"
     speed_match = re.search(r'(\d+(?:\.\d+)?)\s*mph', lower_rest, re.IGNORECASE)
@@ -285,6 +312,7 @@ def parseCardioWorkout(exercise_norm: str, rest: str, iso_ts: str) -> Dict[str, 
     # Extract remaining text as notes (remove extracted values)
     notes_text = rest
     notes_text = re.sub(r'\d+(?:\.\d+)?\s*min(?:ute)?s?', '', notes_text, flags=re.IGNORECASE)
+    notes_text = re.sub(r'\b\d+:\d{2}\b', '', notes_text)
     notes_text = re.sub(r'\d+(?:\.\d+)?\s*mph', '', notes_text, flags=re.IGNORECASE)
     notes_text = re.sub(r'\d+(?:\.\d+)?\s*degree\s*incline', '', notes_text, flags=re.IGNORECASE)
     notes_text = re.sub(r'incline\s*\d+(?:\.\d+)?', '', notes_text, flags=re.IGNORECASE)
