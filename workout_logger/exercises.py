@@ -44,6 +44,16 @@ EXERCISE_MAP: dict[str, str] = {
     'dragonflag': 'dragon_flag',
     'dragon': 'dragon_flag',
 
+    # Curl exercises
+    'bicep curl': 'bicep_curl',
+    'bicep curls': 'bicep_curl',
+    'curl': 'bicep_curl',
+    'curls': 'bicep_curl',
+    'barbell curl': 'bicep_curl',
+    'cable curl': 'cable_curl',
+    'hammer curl': 'hammer_curl',
+    'hammer curls': 'hammer_curl',
+
     # Dumbbell exercises
     'db bench': 'dumbbell_bench_press',
     'dumbbell bench': 'dumbbell_bench_press',
@@ -91,6 +101,9 @@ EXERCISE_TYPE: dict[str, ExerciseType] = {
     'weighted_dip': 'strength',
     'dumbbell_bench_press': 'strength',
     'shrug': 'strength',
+    'bicep_curl': 'strength',
+    'cable_curl': 'strength',
+    'hammer_curl': 'strength',
     'dip': 'bodyweight',
     'chin_up': 'bodyweight',
     'weighted_chin_up': 'bodyweight',
