@@ -40,6 +40,11 @@ class TestExerciseNormalization:
         assert normalizeExercise('press') == 'ohp'
         assert normalizeExercise('overhead press') == 'ohp'
 
+    def test_push_press_aliases(self):
+        assert normalizeExercise('push press') == 'push_press'
+        assert normalizeExercise('pp') == 'push_press'
+        assert normalizeExercise('Push Press') == 'push_press'
+
     def test_pullup_aliases(self):
         assert normalizeExercise('pull up') == 'pull_up'
         assert normalizeExercise('pull-up') == 'pull_up'
